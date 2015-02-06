@@ -1,20 +1,28 @@
+  
+// Flags controlling how this chart works.
+var DO_ENLARGE_ON_HOVER = true; // Do circles get bigger when you hover on them?
+var SHOW_STATIC_LABELS = true; // Do circles have team name labels on the 'main' plot?
+
+// Constants defining the geometry of the plot.
+
+var TEAM_RADIUS = 12; // How big of circles to make in scatter plot.
+var HOVER_RADIUS = 20; // How big circles grow when we hover over them.
+
+// Total size of the chart. TODO: Don't forget to set this to match in footballtime.css
+var CHART_WIDTH  = 640;
+var CHART_HEIGHT = 500;
+
+// "Working space" size is defined by INNER_WIDTH x INNER_HEIGHT.
+var MARGIN = { top: 20, right: 40, bottom: 30, left: 40 };
+var INNER_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
+var INNER_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
+
+var ANIMATION_TIME = 100; // milliseconds
+
 /**
  * Main d3 rendering method.
  */
 function renderMainChart() {
-  // Constants defining the geometry of the plot.
-
-  var TEAM_RADIUS = 12; // How big of circles to make in scatter plot.
-  var HOVER_RADIUS = 20; // How big circles grow when we hover over them.
-
-  // Total size of the chart. Don't forget to set this in footballtime.css
-  var CHART_WIDTH  = 500;
-  var CHART_HEIGHT = 500;
-
-  // "Working space" size is defined by INNER_WIDTH x INNER_HEIGHT.
-  var MARGIN = { top: 20, right: 40, bottom: 30, left: 40 };
-  var INNER_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
-  var INNER_HEIGHT = CHART_WIDTH - MARGIN.top - MARGIN.bottom;
 
   // Extract X and Y arrays from the data to normalize the chart scale to its width.
   var x_coords = [];
@@ -60,25 +68,30 @@ function renderMainChart() {
     .attr("cy", TEAM_RADIUS)
     .attr("r", TEAM_RADIUS)
     .attr("fill", function(team) { return team.color; })
-    .on('mouseover', function() {
+
+  if (DO_ENLARGE_ON_HOVER) {
+    circle.on('mouseover', function() {
       d3.select(this)
         .transition()
-          .duration(100)
+          .duration(ANIMATION_TIME)
           .attr('r', HOVER_RADIUS) // enlarge radius during mouseover.
     })
     .on('mouseout', function() {
       d3.select(this)
         .transition()
-          .duration(100)
+          .duration(ANIMATION_TIME)
           .attr('r', TEAM_RADIUS)
     })
+  }
 
-  // The team name appears to the lower-right corner of the circle.
-  var label = circleBlock.append("text")
-    .attr("x", function(team) { return 2 * TEAM_RADIUS + 2; })
-    .attr("y", function(team) { return 2 * TEAM_RADIUS + 6; })
-    .attr("transform", "")
-    .text(function(team) { return team.name; } );
+  if (SHOW_STATIC_LABELS) {
+    // The team name appears to the lower-right corner of the circle.
+    var label = circleBlock.append("text")
+      .attr("x", function(team) { return 2 * TEAM_RADIUS + 2; })
+      .attr("y", function(team) { return 2 * TEAM_RADIUS + 6; })
+      .attr("transform", "")
+      .text(function(team) { return team.name; } );
+  }
 
   // Put axis labels on the sides of our scatterplot chart.
   var xAxisGraphic = d3.svg.axis().scale(x_axis).orient("bottom").ticks(10, "");
