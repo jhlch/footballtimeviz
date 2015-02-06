@@ -1,6 +1,10 @@
-.chartbox {
+.chartwidth {
   /** TODO: Set your width here as well as CHART_WIDTH in d3-chart.js. */
   width: 640px;
+}
+
+/* Container for main chart. */
+.chartbox {
   padding: 3px;
   margin: 1px;
   color: black;
@@ -29,7 +33,7 @@
   font-size: 10pt;
 }
 
-/** properties of the axis labels */
+/** properties of the mani axis labels */
 .axis text {
   font-size: 8pt;
 }
@@ -38,4 +42,8 @@
   fill: none;
   stroke: black;
   shape-rendering: crispEdges;
+}
+
+/** The "football field axis" at the bottom has this style.
+.fieldAxisElem {
 }
