@@ -60,10 +60,53 @@ function renderMainChart() {
   chart.attr("width", CHART_WIDTH)
       .attr("height", CHART_HEIGHT);
 
+  if (SHOW_FOOTBALL_FIELD_AXIS) {
+    var fieldAxisValues = [];
+    for (var i = 0; i < 100; i++) {
+      fieldAxisValues.push(i)
+    }
+    fieldAxisScale = d3.scale.linear()
+        .domain([0, d3.max(fieldAxisValues)])
+        .range([MARGIN.left, INNER_WIDTH]);
+
+    var fieldAxisElemWidth = INNER_WIDTH / 100 // how wide is each piece of the field?
+
+    // Draw blank rectangles across the main window so that we can connect them for 
+    // animation purposes. They all have class 'invisFieldItem'
+    chart.selectAll("g .invisFieldItem").data(fieldAxisValues).enter()
+      .append("g")
+        .attr("class", "invisFieldItem")
+      .append("rect")
+        .attr("style", "fill: white")
+        .attr("transform", function(x) { 
+          var pos = fieldAxisScale(x);
+          return "translate(" + pos + ", 0)";
+        })
+        .attr("width", "" + fieldAxisElemWidth + "px")
+        .attr("height", "" + INNER_HEIGHT + "px")
+        .on('mouseover', function() {
+          var x = this.__data__;
+          var associatedClass = ".axis-" + x;
+          d3.select(associatedClass)
+            .transition()
+              .duration(ANIMATION_TIME/2)
+              .attr("height", "25")
+        })
+        .on('mouseout', function() {
+          var x = this.__data__;
+          var associatedClass = ".axis-" + x;
+          d3.select(associatedClass)
+            .transition()
+              .duration(ANIMATION_TIME/2)
+              .attr("height", "" + FIELD_AXIS_HEIGHT + "px")
+        })
+  }
+
+
   // We're ready to render the chart proper
 
-  // Each team appears inside a 'circleBlock'
-  var circleBlock = chart.selectAll("g").data(data).enter()
+  // Each team appears inside a 'circleBlock' with class 'chartelem'
+  var circleBlock = chart.selectAll("g chartelem").data(data).enter()
     .append("g")
       .attr("class", "chartelem")
       .attr("transform", function(team) { 
@@ -148,19 +191,9 @@ function renderMainChart() {
     // Make a redundant X-axis that looks like a football field below the main chart.
     var fieldAxisColors = [ '#44bb44', '#66dd66' ]; // Alternating shades of green for the field
 
-    var fieldAxisValues = [];
-    for (var i = 0; i < 100; i++) {
-      fieldAxisValues.push(i)
-    }
-    fieldAxisScale = d3.scale.linear()
-        .domain([0, d3.max(fieldAxisValues)])
-        .range([MARGIN.left, INNER_WIDTH]);
-
     var fieldAxis = d3.select(".fieldaxis")
         .attr("width", CHART_WIDTH)
         .attr("height", FIELD_AXIS_HEIGHT)
-
-    var fieldAxisElemWidth = INNER_WIDTH / 100 // how wide is each piece of the field?
 
     // Draw 1% width items across the whole "field" axis.
     fieldAxis.selectAll("g").data(fieldAxisValues).enter()
@@ -173,38 +206,7 @@ function renderMainChart() {
         .attr("transform", function(x) { return "translate(" + fieldAxisScale(x) + ", 0)"; })
         .attr("width", "" + fieldAxisElemWidth + "px")
         .attr("height", "" + FIELD_AXIS_HEIGHT + "px")
-
-    // Draw blank rectangles across the main window so that we can connect them for 
-    // animation purposes.
-    // TODO: Why do these start at invisible-item-24? What happened to 0..23?!
-    chart.selectAll("g").data(fieldAxisValues).enter()
-      .append("g").append("rect")
-        .attr("class", function(x) { return "invisible-item-" + x; })
-        .attr("style", "fill: blue") // TODO Remove color; make white, move "under" circles.
-        .attr("transform", function(x) { 
-          var pos = fieldAxisScale(x);
-          return "translate(" + pos + ", 0)";
-        })
-        .attr("width", "" + fieldAxisElemWidth + "px")
-        .attr("height", "" + INNER_HEIGHT + "px")
-        .on('mouseover', function() {
-          var x = this.__data__;
-          var associatedClass = ".axis-" + x;
-          d3.select(associatedClass)
-            .transition()
-              .duration(ANIMATION_TIME/2)
-              .attr("height", "25")
-        })
-        .on('mouseout', function() {
-          var x = this.__data__;
-          var associatedClass = ".axis-" + x;
-          d3.select(associatedClass)
-            .transition()
-              .duration(ANIMATION_TIME/2)
-              .attr("height", "" + FIELD_AXIS_HEIGHT + "px")
-        })
   }
-
   return true;
 }
 
