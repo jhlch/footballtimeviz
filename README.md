@@ -3,6 +3,8 @@
 FootballTime Viz
 ================
 
+[View it online!](http://kimballa.github.io/footballtimeviz/)
+
 Steps to finish this off:
 
 * Add your data objects to data.js
@@ -17,3 +19,4 @@ Steps to finish this off:
 * View the index.html locally in Google Chrome. Don't forget to check that this all works
   offline for max presentation awesome. I think I've brought all the necessary .js and .css
   files into this repo, but you can't be too careful.
+
