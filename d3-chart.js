@@ -1,4 +1,4 @@
-  
+
 // Flags controlling how this chart works.
 var DO_ENLARGE_ON_HOVER = true; // Do circles get bigger when you hover on them?
 var SHOW_STATIC_LABELS = true; // Do circles have team name labels on the 'main' plot?
@@ -15,8 +15,13 @@ var CHART_HEIGHT = 500;
 
 // Height of the football-field-like x-axis at the bottom.
 var FIELD_AXIS_HEIGHT = 40;
-var FIELD_AXIS_NOTCH_HEIGHT = 30;
+var FIELD_AXIS_NOTCH_HEIGHT = 30; // How tall is each element of the field axis?
+// How high do we bump it?
 var FIELD_AXIS_NOTCH_OFFSET = FIELD_AXIS_HEIGHT - FIELD_AXIS_NOTCH_HEIGHT;
+
+var FIELD_AXIS_YARDS = 100; // How wide is the football field, in "yards" ?
+var FIELD_AXIS_ELEM_YARDS = 5; // How wide is each colored block of the field in yards?
+var FIELD_AXIS_GOAL_YARDS = 5; // How wide is each goal segment block?
 
 // "Working space" size is defined by INNER_WIDTH x INNER_HEIGHT.
 var MARGIN = { top: 20, right: 40, bottom: 30, left: 40 };
@@ -58,29 +63,30 @@ function renderMainChart() {
   // Start building the chart.
 
   var chart = d3.select(".chartbody");
-    
+
   chart.attr("width", CHART_WIDTH)
       .attr("height", CHART_HEIGHT);
 
   if (SHOW_FOOTBALL_FIELD_AXIS) {
     var fieldAxisValues = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < FIELD_AXIS_YARDS; i += FIELD_AXIS_ELEM_YARDS) {
       fieldAxisValues.push(i)
     }
     fieldAxisScale = d3.scale.linear()
         .domain([0, d3.max(fieldAxisValues)])
         .range([MARGIN.left, INNER_WIDTH]);
 
-    var fieldAxisElemWidth = INNER_WIDTH / 100 // how wide is each piece of the field?
+    // How wide is each piece of the field?
+    var fieldAxisElemWidth = INNER_WIDTH / fieldAxisValues.length;
 
-    // Draw blank rectangles across the main window so that we can connect them for 
+    // Draw blank rectangles across the main window so that we can connect them for
     // animation purposes. They all have class 'invisFieldItem'
     chart.selectAll("g .invisFieldItem").data(fieldAxisValues).enter()
       .append("g")
         .attr("class", "invisFieldItem")
       .append("rect")
         .attr("style", "fill: white")
-        .attr("transform", function(x) { 
+        .attr("transform", function(x) {
           var pos = fieldAxisScale(x);
           return "translate(" + pos + ", 0)";
         })
@@ -91,8 +97,8 @@ function renderMainChart() {
           var associatedClass = ".axis-" + x;
           d3.select(associatedClass)
             .transition()
-              .duration(ANIMATION_TIME/2)
-              .attr("transform", function(x) { 
+              .duration(ANIMATION_TIME)
+              .attr("transform", function(x) {
                 return "translate(" + fieldAxisScale(x) + ", 0)";
               })
         })
@@ -101,7 +107,7 @@ function renderMainChart() {
           var associatedClass = ".axis-" + x;
           d3.select(associatedClass)
             .transition()
-              .duration(ANIMATION_TIME/2)
+              .duration(ANIMATION_TIME)
               .attr("transform", function(x) {
                 return "translate(" + fieldAxisScale(x) + ", " + FIELD_AXIS_NOTCH_OFFSET + ")";
               })
@@ -115,7 +121,7 @@ function renderMainChart() {
   var circleBlock = chart.selectAll("g chartelem").data(data).enter()
     .append("g")
       .attr("class", "chartelem")
-      .attr("transform", function(team) { 
+      .attr("transform", function(team) {
         return "translate(" + x_axis(team.x) + ", " + y_axis(team.y) + ")";
       });
 
@@ -197,15 +203,47 @@ function renderMainChart() {
     // Make a redundant X-axis that looks like a football field below the main chart.
     var fieldAxisColors = [ '#44bb44', '#66dd66' ]; // Alternating shades of green for the field
 
+    // "Goal-line" segments are drawn at these offsets
+    var fieldAxisGoals = [ (0 - FIELD_AXIS_GOAL_YARDS), 100 ];
+
     var fieldAxis = d3.select(".fieldaxis")
         .attr("width", CHART_WIDTH)
         .attr("height", FIELD_AXIS_HEIGHT)
 
-    // Draw 1% width items across the whole "field" axis.
-    fieldAxis.selectAll("g").data(fieldAxisValues).enter()
-      .append("g").append("rect")
+    // Draw goals at the edges of the field offsets, "under" the field
+    var fieldAxisGoalWidth = fieldAxisElemWidth * (FIELD_AXIS_GOAL_YARDS / FIELD_AXIS_ELEM_YARDS);
+    var goal = fieldAxis.selectAll("g goal").data(fieldAxisGoals).enter()
+      .append("g")
+        .attr("class", "mainFieldElem")
+        .attr("transform", function(x) {
+          return "translate(" + fieldAxisScale(x) + ", " + FIELD_AXIS_NOTCH_OFFSET + ")"; })
+
+    goal.append("rect")
+        .attr("class", function(x, idx) { return "fieldAxisGoal goal-" + x; })
+        .attr("style", function(x, idx) {
+          var color = fieldAxisColors[(idx + 1) % 2];
+          return "fill: " + color;
+        })
+        .attr("width", "" + fieldAxisGoalWidth + "px")
+        .attr("height", "" + FIELD_AXIS_NOTCH_HEIGHT + "px");
+    goal.append("rect")
+        .attr("transform", function(x, idx) {
+          // The left edge of the field gets a line on its right side; right edge
+          // requires no additional offset since our goal markers increment left-to-right.
+          var offset = (x < 0) ? (fieldAxisGoalWidth - 2) : 0;
+          return "translate(" + offset + ", 0)";
+        })
+        .attr("width", "2px")
+        .attr("height", "" + FIELD_AXIS_NOTCH_HEIGHT + "px")
+        .attr("fill", "white");
+
+    // Draw narrow-width items (for each field_axis_elem_yards) across the whole "field" axis.
+    fieldAxis.selectAll("g mainFieldElem").data(fieldAxisValues).enter()
+      .append("g")
+        .attr("class", "mainFieldElem")
+      .append("rect")
         .attr("class", function(x, idx) { return "fieldAxisElem axis-" + x; })
-        .attr("style", function(x, idx) { 
+        .attr("style", function(x, idx) {
           var color = fieldAxisColors[idx % 2];
           return "fill: " + color;
         })
