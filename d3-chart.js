@@ -15,6 +15,8 @@ var CHART_HEIGHT = 500;
 
 // Height of the football-field-like x-axis at the bottom.
 var FIELD_AXIS_HEIGHT = 40;
+var FIELD_AXIS_NOTCH_HEIGHT = 30;
+var FIELD_AXIS_NOTCH_OFFSET = FIELD_AXIS_HEIGHT - FIELD_AXIS_NOTCH_HEIGHT;
 
 // "Working space" size is defined by INNER_WIDTH x INNER_HEIGHT.
 var MARGIN = { top: 20, right: 40, bottom: 30, left: 40 };
@@ -90,7 +92,9 @@ function renderMainChart() {
           d3.select(associatedClass)
             .transition()
               .duration(ANIMATION_TIME/2)
-              .attr("height", "25")
+              .attr("transform", function(x) { 
+                return "translate(" + fieldAxisScale(x) + ", 0)";
+              })
         })
         .on('mouseout', function() {
           var x = this.__data__;
@@ -98,7 +102,9 @@ function renderMainChart() {
           d3.select(associatedClass)
             .transition()
               .duration(ANIMATION_TIME/2)
-              .attr("height", "" + FIELD_AXIS_HEIGHT + "px")
+              .attr("transform", function(x) {
+                return "translate(" + fieldAxisScale(x) + ", " + FIELD_AXIS_NOTCH_OFFSET + ")";
+              })
         })
   }
 
@@ -203,9 +209,10 @@ function renderMainChart() {
           var color = fieldAxisColors[idx % 2];
           return "fill: " + color;
         })
-        .attr("transform", function(x) { return "translate(" + fieldAxisScale(x) + ", 0)"; })
+        .attr("transform", function(x) {
+          return "translate(" + fieldAxisScale(x) + ", " + FIELD_AXIS_NOTCH_OFFSET + ")"; })
         .attr("width", "" + fieldAxisElemWidth + "px")
-        .attr("height", "" + FIELD_AXIS_HEIGHT + "px")
+        .attr("height", "" + FIELD_AXIS_NOTCH_HEIGHT + "px")
   }
   return true;
 }
