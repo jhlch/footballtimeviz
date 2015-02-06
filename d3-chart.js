@@ -60,6 +60,18 @@ function renderMainChart() {
     .attr("cy", TEAM_RADIUS)
     .attr("r", TEAM_RADIUS)
     .attr("fill", function(team) { return team.color; })
+    .on('mouseover', function() {
+      d3.select(this)
+        .transition()
+          .duration(100)
+          .attr('r', HOVER_RADIUS) // enlarge radius during mouseover.
+    })
+    .on('mouseout', function() {
+      d3.select(this)
+        .transition()
+          .duration(100)
+          .attr('r', TEAM_RADIUS)
+    })
 
   // The team name appears to the lower-right corner of the circle.
   var label = circleBlock.append("text")
