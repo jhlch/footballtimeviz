@@ -2,7 +2,7 @@
 // Flags controlling how this chart works.
 var DO_ENLARGE_ON_HOVER = true; // Do circles get bigger when you hover on them?
 var SHOW_STATIC_LABELS = true; // Do circles have team name labels on the 'main' plot?
-var SHOW_FOOTBALL_FIELD_AXIS = true; // Draw a football field 'axis' at the bottom of the screen.
+var SHOW_FOOTBALL_FIELD_AXIS = false; // Draw a football field 'axis' at the bottom of the screen.
 
 // Constants defining the geometry of the plot.
 
@@ -130,7 +130,8 @@ function renderMainChart() {
     .attr("cx", TEAM_RADIUS)
     .attr("cy", TEAM_RADIUS)
     .attr("r", TEAM_RADIUS)
-    .attr("fill", function(team) { return team.color; })
+    .attr("fill", "green")
+    .attr("opacity", "0.4")
 
   if (DO_ENLARGE_ON_HOVER) {
     circle.on('mouseover', function() {
@@ -187,12 +188,15 @@ function renderMainChart() {
     html: true,
     title: function() {
       var d = this.__data__;
-      // TODO: Render the various string properties from your JSON objects into this text.
-      text =  '<h3>' + d.name + '</h3>';
+      text = '<p>Score: ' + d.x;
+      text += '<br/> Var: ' + d.y;
+      text += '</p>'; 
       text += '<hr/>';
-      text += '<p class="info">Foo: ' + d.foo;
-      text += '<br/>Bar: ' + d.bar;
-      text += '<br/>Baz: ' + d.baz;
+      text += '<p class="info">WR-1: ' + d.wr1;
+      text += '<br/>WR-2: ' + d.wr2;
+      text += '<br/>RB: ' + d.rb;
+      text += '<br/>TE: ' + d.te;
+      text += '<br/>QB: ' + d.qb;
       text += '</p>';
       return text;
     }
@@ -245,9 +249,6 @@ function renderMainChart() {
         .attr("class", function(x, idx) { return "fieldAxisElem axis-" + x; })
         .attr("style", function(x, idx) {
           var color = fieldAxisColors[idx % 2];
-          return "fill: " + color;
-        })
-        .attr("transform", function(x) {
           return "translate(" + fieldAxisScale(x) + ", " + FIELD_AXIS_NOTCH_OFFSET + ")"; })
         .attr("width", "" + fieldAxisElemWidth + "px")
         .attr("height", "" + FIELD_AXIS_NOTCH_HEIGHT + "px")
